@@ -99,8 +99,10 @@ pub enum Opcode {
     REM = 36,
     /// rd ← rs1 % rs2 (unsigned), pc ← pc + 4
     REMU = 37,
+    /// rd ← rs1 * rs1, pc ← pc + 4
+    SQR = 38,
     /// Unimplemented instruction.
-    UNIMP = 38,
+    UNIMP = 39,
 }
 
 /// Byte Opcode.
@@ -173,6 +175,7 @@ impl Opcode {
             Opcode::DIVU => "divu",
             Opcode::REM => "rem",
             Opcode::REMU => "remu",
+            Opcode::SQR => "sqr",
             Opcode::UNIMP => "unimp",
         }
     }

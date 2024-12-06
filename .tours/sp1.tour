@@ -1,0 +1,168 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "test_simple_program_run",
+  "steps": [
+    {
+      "file": "crates/core/executor/src/opcode.rs",
+      "description": "\n`opcode.rs` 文件定义了 SP1 zkVM 的指令集对应的枚举数值，包括算术、逻辑、内存、控制流和系统调用等操作码。",
+      "line": 27
+    },
+    {
+      "file": "crates/core/executor/src/opcode.rs",
+      "description": "TODO: 这里需要搞清楚这些注释对应的内容，以及这些内容是在哪里编码到zkp里面的\n",
+      "line": 46
+    },
+    {
+      "file": "crates/core/executor/src/instruction.rs",
+      "description": "instruction使用Opcode作为其成员，组合成完整的指令描述\n这种设计让SP1可以:\n灵活地处理RISC-V指令\n区分寄存器操作和立即数操作\n简化指令执行的实现\n\n这个文件的主要功能是：\n定义指令的基本结构\n提供创建和操作指令的方法\n实现指令类型的判断功能\n提供调试输出支持\n它是SP1 zkVM中指令处理的核心组件，连接了操作码定义和具体的指令执行。",
+      "line": 14
+    },
+    {
+      "file": "crates/core/executor/src/instruction.rs",
+      "description": "TODO: Opcode 可以在多个地方使用，不仅限于 Instruction。例如，在指令解码、执行、调试等过程中都可能需要引用 Opcode。\n\n在某些情况下，操作码可能需要进行序列化、反序列化(例如处理成json数据)或转换为其他格式（如字段元素）。将这些操作集中在 Opcode 中可以更好地进行优化。\n\nTODO: 为什么每个操作数用到的大小不一样？ u8 u32 u32",
+      "line": 16
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "先从一个测试函数入手 看看都调用了哪些 然后再逐步解析功能\n\n为了执行这个测试 需要看一下 executor 的 toml 里面有一句\n\n[features]\n\nprograms = [\"dep:test-artifacts\"]\n\n所以这个测试的执行命令为\n\ncargo +succinct test -p sp1-core-executor test_simple_program_run --features programs\n\n或者直接在 executor 目录下执行\n\ncargo +succinct test test_simple_program_run --features programs\n\n\n",
+      "line": 1711
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "先来看看program都定义了啥\nPS. 当对被 Arc (Atomic Reference Counting) 包裹的值调用 clone() 时，只会克隆 Arc 本身，而不会克隆其内部的数据\n\n并且这里不涉及可变访问",
+      "line": 201
+    },
+    {
+      "file": "crates/core/executor/src/program.rs",
+      "description": "假设一个程序的代码段被加载到内存地址 0x400000，而程序入口点（main 函数的地址）在代码段的偏移量是 0x2000，那么：\n\t•\tBase Address = 0x400000\n\t•\tStart Address = 0x400000 + 0x2000 = 0x402000",
+      "line": 19
+    },
+    {
+      "file": "crates/core/executor/src/program.rs",
+      "description": "这里调用到了 transpile 这个函数 这个函数主要把 elf中解析出来的指令给存成一个vec 其中还有一个特殊的函数记录了 ecall",
+      "line": 57
+    },
+    {
+      "file": "crates/core/executor/src/disassembler/rrs.rs",
+      "description": "RRS: RISC-V Reference Specification\n\nELF file -> Program::from() -> transpile() -> process_instruction() -> InstructionProcessor methods\n\n这里传进来的已经是被decode过的elf了，现在通过匹配被decode的elf指令insn_bits来分配不同的processor函数\n\nprocess_instruction 是工具链里面提供的函数 是个注册函数\n\n实现了 InstructionTranspiler trait 的 processor 可以通过 instruction_u32 的数值来返回对应的函数指针，\n\n这样开发这就不用在意 rss-succinct 这个工具链了 \n\nTODO: 但是 elf 解析的部分可能还是要修改的？\n\n在工具链中 insn_bits 被如此\n\nlet dec_insn = instruction_formats::RType::new(insn_bits);\n\n解析 TODO: 这个应该是跟 riscv 的指令格式有关系",
+      "line": 373
+    },
+    {
+      "file": "crates/core/executor/src/disassembler/rrs.rs",
+      "description": "最后走到这里 这里是处理ecall的部分",
+      "line": 279
+    },
+    {
+      "file": "crates/core/executor/src/program.rs",
+      "description": "接下来看一下这个函数\n\n自定义逻辑 Custom logic 用于\n\n根据 proof shape 证明的形状/结构 padding trace to power of two\n\nTODO: 这个函数何时被调用？\n\nTODO: 为什么需要 Padding（填充）\n\nSTARK 证明系统要求轨迹的长度必须是 2 的幂次方（比如 2⁴=16, 2⁵=32, 2⁶=64 等）\n\n如果实际的轨迹长度不是 2 的幂次方，就需要进行填充\n\nTODO: Proof Shape（证明形状）\n\n描述了证明系统中各个组件的结构和大小要求\n\n不同的计算可能需要不同大小的轨迹表",
+      "line": 81
+    },
+    {
+      "file": "crates/core/executor/src/program.rs",
+      "description": "取值令函数 div 4 是因为 word size is 32\n\nPC 每次增加一个 word 其原因是内存对齐这个需求，（假设我们使用的是非压缩指令集）",
+      "line": 95
+    },
+    {
+      "file": "crates/core/executor/src/program.rs",
+      "description": "MachineProgram: A program that defines the control flow of a machine through a program counter.\n\n其实就是定义了 turing machine 的那条纸带的起点\n\nfrom_canonical_u32 在我看opcode中就由 as_field 函数调用了这个接口，\n\n将操作码转换为有限域元素\n\n使操作码可以参与零知识证明计算\n\n在生成证明时保持指令的语义\n\n而在这里\n\n将程序计数器值转换为有限域元素\n\nTODO 在证明系统中追踪程序执行流程\n\nTODO 确保程序执行的正确性可以被证明",
+      "line": 101
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "让我们再来看一下 record 里面做了什么",
+      "line": 204
+    },
+    {
+      "file": "crates/core/executor/src/record.rs",
+      "description": "这里接受了来自 exector 传来的 program （里面是 ISA ） 然后 ExecutionRecord 除了 program 之外的其他字段先都保持默认状态",
+      "line": 103
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "当一个runtime被创建之后，执行run函数\n\n在该函数里面 execute 函数会被反复调用 如果 execute 执行失败 则由?操作符返回错误 否则execute会返回程序是已经结束执行 还是未完成执行这两个状态，(被包含在OK中)",
+      "line": 1480
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "Simple, // 纯执行，不记录额外信息 Checkpoint, // 记录内存检查点，支持状态回滚 Trace, // 记录完整执行轨迹，用于调试和生成证明\n\n这种设计让SP1可以根据不同场景（执行/调试/证明）选择最合适的模式，平衡性能和功能需求。",
+      "line": 1484
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "这里应该是并行化处理的 暂时先不管",
+      "line": 1520
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "我觉的这里定义的不好 cpu clock 和 cycle 应该是不一样的概念\n\n并且有没有 当 state.clk == 0 时， max_syscall_cycles 和 shard_size 之间的检查，否则会进入死循环？\n\n```\n// 在初始化Executor时应该有这样的检查\nassert!(self.max_syscall_cycles < self.shard_size, \n    \"max_syscall_cycles must be less than shard_size to avoid infinite loops\");\n```",
+      "line": 1210
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "定期检查程序的执行模式是否仍然在可接受的范围内。如果即将超出资源限制，提前停止当前shard，以避免内存不足等问题。\n\n这里暂时没用到",
+      "line": 1216
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "这里的条件是 PC超出了程序范围\n\n```\n\npc_base = 1000           // 程序起始地址\ninstructions.len() = 10  // 10条指令\nprogram_size = 10 * 4 = 40 bytes  // 总大小\n// 那么程序结束的条件是：\npc == 0 || (pc - 1000) >= 40  // pc >= 1040\n\n```\n\nTODO: SP1 中使用的是扁平内存模型\n\n让我详细解释一下扁平内存模型(Flat Memory Model):\n扁平内存模型的定义\n// SP1中的内存实现\npub struct Program {\n    /// The initial memory image, useful for global constants.\n    pub memory_image: HashMap<u32, u32>,  // 直接用哈希表存储内存\n}\n\n// 内存访问示例\nlet memory_value = self.state.memory.get(addr);  // 直接通过地址访问\n扁平内存模型的特点:\n1. 直接寻址\n所有内存位置都可以直接通过地址访问\n没有分段或层次结构\n一个连续的地址空间\n统一访问\n// 在SP1中,所有类型的内存访问都是一样的\nfn execute_load(&mut self, instruction: &Instruction) {\n    let addr = calculate_address();\n    let value = self.memory.get(addr);  // 代码区、数据区访问方式相同\n}\n对比其他内存模型\n分段内存模型\n代码段(Code Segment)\n|\n数据段(Data Segment)\n|\n堆(Heap)\n|\n栈(Stack)\n分页内存模型\n虚拟地址 -> 页表 -> 物理地址\n栈模型\n高地址\n|\n栈顶(Stack Pointer)\n|\n栈底\n|\n低地址\nSP1为什么选择扁平内存模型\n简化证明生成\n// 内存访问记录更直观\npub struct MemoryAccessRecord {\n    pub read: Option<MemoryReadRecord>,\n    pub write: Option<MemoryWriteRecord>,\n}\n易于追踪\n// 所有内存操作都可以直接记录\nself.memory_accesses = MemoryAccessRecord {\n    read: Some(read_record),\n    write: Some(write_record),\n};\n零知识证明友好\n状态转换更容易证明\n内存一致性验证更简单\n实际应用示例\n1. 内存读取\n// 直接通过地址读取\nlet value = match instruction.opcode {\n    Opcode::LB => memory_read_value & 0xFF,\n    Opcode::LH => memory_read_value & 0xFFFF,\n    Opcode::LW => memory_read_value,\n};\n内存写入\n// 直接通过地址写入\nself.mw_cpu(align(addr), memory_store_value, MemoryAccessPosition::Memory);\n3. 内存对齐\n// 简单的对齐操作\npub const fn align(addr: u32) -> u32 {\n    addr - addr % 4  // 4字节对齐\n}\n优点:\n1. 实现简单\n2. 访问速度一致\n易于追踪和验证\n适合生成零知识证明\n缺点:\n没有内存保护机制\n可能需要更多的内存管理代码\n不适合复杂的内存分配策略\n总的来说，扁平内存模型就是一个简单的、统一的地址空间，所有内存位置都可以直接访问，没有复杂的层次结构或分段机制。这种简单性使其特别适合SP1这样的零知识证明系统。\n",
+      "line": 1347
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "让我们回来看一下 execute_instruction 这个函数， ISA 会被这个函数给执行",
+      "line": 1203
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": " 如果要从opcode角度来增加的话 从这里增加一个sqr是合适的",
+      "line": 878
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "这种 Load Save 操作会被记录内存操作\n\n更正 rr 操作就会记录内存 根据白皮书，SP1中的内存和寄存器是不分家的\n\nrr means read register",
+      "line": 889
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "1. 这里充分说明展示了 SP1 单线程的特性，（但是 SHARD 是可以被你执行多个的 这个后面再去考究）\n\n2. 一个 ISA 一个 EVENT\n\n3. 每执行一个 ISA 消耗的 CLK 量不一样",
+      "line": 1027
+    },
+    {
+      "file": "crates/core/executor/src/syscalls/code.rs",
+      "description": "另一个 通过 precompile 的方式就是先在这里添加了",
+      "line": 26
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "这里是死活没看懂\n",
+      "line": 930
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "这里先跳过 这是涉及到 ecall 的 pc 更新",
+      "line": 929
+    },
+    {
+      "file": "crates/core/executor/src/executor.rs",
+      "description": "在程序结束时，可能会创建一些只包含内存事件但没有CPU事件的记录。\n\n当非空时，\n\n```\nrecord.public_values.start_pc = record.cpu_events[0].pc;\nrecord.public_values.next_pc = record.cpu_events.last().unwrap().next_pc;\nrecord.public_values.exit_code = record.cpu_events.last().unwrap().exit_code;\n```\n\n每个 record 会跟据自己当前记录的 events 来填写 public value",
+      "line": 1553
+    },
+    {
+      "file": "crates/core/machine/src/riscv/mod.rs",
+      "description": "TODO: 这里应该也要加 但是目前还不太清楚",
+      "line": 68
+    },
+    {
+      "file": "crates/core/executor/src/events/precompiles/mod.rs",
+      "description": "以及这里",
+      "line": 87
+    },
+    {
+      "file": "crates/core/machine/src/syscall/precompiles/README.md",
+      "description": "参考",
+      "line": 102
+    }
+  ],
+  "ref": "dev",
+  "isPrimary": true
+}

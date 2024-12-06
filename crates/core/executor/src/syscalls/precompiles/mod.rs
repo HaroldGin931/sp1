@@ -1,4 +1,5 @@
 pub mod edwards;
+pub mod esqr;
 pub mod fptower;
 pub mod keccak256;
 pub mod sha256;

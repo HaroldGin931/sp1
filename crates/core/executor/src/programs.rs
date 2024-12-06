@@ -6,8 +6,8 @@ pub mod tests {
     use crate::{Instruction, Opcode, Program};
 
     use test_artifacts::{
-        FIBONACCI_ELF, KECCAK_PERMUTE_ELF, PANIC_ELF, SECP256R1_ADD_ELF, SECP256R1_DOUBLE_ELF,
-        U256XU2048_MUL_ELF,
+        ESQR_ELF, FIBONACCI_ELF, KECCAK_PERMUTE_ELF, PANIC_ELF, SECP256R1_ADD_ELF,
+        SECP256R1_DOUBLE_ELF, U256XU2048_MUL_ELF,
     };
 
     #[must_use]
@@ -18,6 +18,20 @@ pub mod tests {
             Instruction::new(Opcode::ADD, 31, 30, 29, false, false),
         ];
         Program::new(instructions, 0, 0)
+    }
+
+    #[must_use]
+    pub fn simple_sqr_program() -> Program {
+        let instructions = vec![
+            Instruction::new(Opcode::SQR, 29, 0, 5, false, true),
+            Instruction::new(Opcode::ECALL, 30, 0, 6, false, true),
+        ];
+        Program::new(instructions, 0, 0)
+    }
+
+    #[must_use]
+    pub fn simple_esqr_program() -> Program {
+        Program::from(ESQR_ELF).unwrap()
     }
 
     /// Get the fibonacci program.

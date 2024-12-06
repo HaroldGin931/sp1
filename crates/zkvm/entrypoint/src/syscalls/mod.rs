@@ -2,6 +2,7 @@ mod bigint;
 mod bls12381;
 mod bn254;
 mod ed25519;
+mod esqr;
 mod fptower;
 mod halt;
 mod io;
@@ -22,6 +23,7 @@ pub use bigint::*;
 pub use bls12381::*;
 pub use bn254::*;
 pub use ed25519::*;
+pub use esqr::*;
 pub use fptower::*;
 pub use halt::*;
 pub use io::*;
@@ -157,3 +159,6 @@ pub const BN254_FP2_SUB: u32 = 0x00_01_01_2A;
 
 /// Executes the `BN254_FP2_MUL` precompile.
 pub const BN254_FP2_MUL: u32 = 0x00_01_01_2B;
+
+/// Executes the `SQR_EXTEND` precompile.
+pub const SQR_EXTEND: u32 = 0x00_11_01_33;

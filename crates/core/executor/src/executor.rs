@@ -238,7 +238,7 @@ impl<'a> Executor<'a> {
             emit_global_memory_events: true,
             max_syscall_cycles,
             report: ExecutionReport::default(),
-            print_report: false,
+            print_report: true,
             subproof_verifier,
             hook_registry,
             opts,
@@ -876,6 +876,7 @@ impl<'a> Executor<'a> {
             | Opcode::DIV
             | Opcode::DIVU
             | Opcode::REM
+            | Opcode::SQR
             | Opcode::REMU => {
                 (a, b, c) = self.execute_alu(instruction, lookup_id);
             }
@@ -925,6 +926,7 @@ impl<'a> Executor<'a> {
                 // register is that we write to it later.
                 let t0 = Register::X5;
                 let syscall_id = self.register(t0);
+                println!("The syscall_id value readed from Register {t0:?} is {syscall_id}");
                 c = self.rr(Register::X11, MemoryAccessPosition::C);
                 b = self.rr(Register::X10, MemoryAccessPosition::B);
                 let syscall = SyscallCode::from_u32(syscall_id);
@@ -1085,6 +1087,10 @@ impl<'a> Executor<'a> {
                     (b as i32).wrapping_rem(c as i32) as u32
                 }
             }
+            Opcode::SQR => {
+                println!("SQR has been called with b is {b:?} c is {c:?}");
+                c.wrapping_mul(c)
+            }
             Opcode::REMU => {
                 if c == 0 {
                     b
@@ -1188,6 +1194,7 @@ impl<'a> Executor<'a> {
     fn execute_cycle(&mut self) -> Result<bool, ExecutionError> {
         // Fetch the instruction at the current program counter.
         let instruction = self.fetch();
+        println!("In execute_cycle the instruction is\n{instruction:?}");
 
         // Log the current state of the runtime.
         #[cfg(debug_assertions)]
@@ -1344,6 +1351,7 @@ impl<'a> Executor<'a> {
             log::error!("program ended in unconstrained mode at clk {}", self.state.global_clk);
             return Err(ExecutionError::EndInUnconstrained());
         }
+        println!("execute_cycle is done\n");
         Ok(done)
     }
 
@@ -1506,6 +1514,7 @@ impl<'a> Executor<'a> {
         let mut current_shard = self.state.current_shard;
         let mut num_shards_executed = 0;
         loop {
+            println!("Global clock: {}", self.state.global_clk);
             if self.execute_cycle()? {
                 done = true;
                 break;
@@ -1687,7 +1696,8 @@ mod tests {
 
     use crate::programs::tests::{
         fibonacci_program, panic_program, secp256r1_add_program, secp256r1_double_program,
-        simple_memory_program, simple_program, ssz_withdrawals_program, u256xu2048_mul_program,
+        simple_esqr_program, simple_memory_program, simple_program, simple_sqr_program,
+        ssz_withdrawals_program, u256xu2048_mul_program,
     };
 
     use crate::Register;
@@ -1707,6 +1717,25 @@ mod tests {
         let mut runtime = Executor::new(program, SP1CoreOpts::default());
         runtime.run().unwrap();
         assert_eq!(runtime.register(Register::X31), 42);
+    }
+
+    #[test]
+    // cargo +succinct test -p sp1-core-executor executor::tests::test_simple_sqr_program_run --features programs
+    fn test_simple_sqr_program_run() {
+        let program = simple_sqr_program();
+        let mut runtime = Executor::new(program, SP1CoreOpts::default());
+        runtime.run().unwrap();
+        assert_eq!(runtime.register(Register::X29), 25);
+    }
+
+    #[test]
+    // cargo +succinct test -p sp1-core-executor executor::tests::test_simple_esqr_program_run --features programs
+    fn test_simple_esqr_program_run() {
+        log::info!("Loading SQR_EXTEND program...");
+        let program = simple_esqr_program();
+        let mut runtime = Executor::new(program, SP1CoreOpts::default());
+        runtime.run().unwrap();
+        // assert_eq!(runtime.register(Register::X29), 25);
     }
 
     #[test]

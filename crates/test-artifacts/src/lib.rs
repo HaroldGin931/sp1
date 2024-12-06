@@ -10,6 +10,8 @@ use sp1_build::include_elf;
 
 pub const FIBONACCI_ELF: &[u8] = include_elf!("fibonacci-program-tests");
 
+pub const ESQR_ELF: &[u8] = include_elf!("esqr-program-tests");
+
 pub const ED25519_ELF: &[u8] = include_elf!("ed25519-program");
 
 pub const CYCLE_TRACKER_ELF: &[u8] = include_elf!("cycle-tracker-test");

@@ -18,6 +18,7 @@ members = [
   "ed-add",
   "ed-decompress",
   "ed25519",
+  "esqr",
   "fibonacci",
   "hint-io",
   "keccak-permute",

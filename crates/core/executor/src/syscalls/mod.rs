@@ -23,6 +23,7 @@ pub use context::*;
 use hint::{HintLenSyscall, HintReadSyscall};
 use precompiles::{
     edwards::{add::EdwardsAddAssignSyscall, decompress::EdwardsDecompressSyscall},
+    esqr::EsqrSyscall,
     fptower::{Fp2AddSubSyscall, Fp2MulSyscall, FpOpSyscall},
     keccak256::permute::Keccak256PermuteSyscall,
     sha256::{compress::Sha256CompressSyscall, extend::Sha256ExtendSyscall},
@@ -82,6 +83,8 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
     let mut syscall_map = HashMap::<SyscallCode, Arc<dyn Syscall>>::default();
 
     syscall_map.insert(SyscallCode::HALT, Arc::new(HaltSyscall));
+
+    syscall_map.insert(SyscallCode::SQR_EXTEND, Arc::new(EsqrSyscall));
 
     syscall_map.insert(SyscallCode::SHA_EXTEND, Arc::new(Sha256ExtendSyscall));
 

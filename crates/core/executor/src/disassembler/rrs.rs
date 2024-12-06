@@ -372,6 +372,9 @@ pub(crate) fn transpile(instructions_u32: &[u32]) -> Vec<Instruction> {
     for instruction_u32 in instructions_u32 {
         let instruction = process_instruction(&mut transpiler, *instruction_u32).unwrap();
         instructions.push(instruction);
+        // if instruction.opcode == Opcode::ECALL {
+        //     println!("ECALL instruction found at this index: {}", instructions.len() - 1);
+        // }
     }
     instructions
 }

@@ -140,6 +140,10 @@ pub enum SyscallCode {
 
     /// Executes the `SECP256R1_DECOMPRESS` precompile.
     SECP256R1_DECOMPRESS = 0x00_00_01_2E,
+
+    /// Executes the `SQR_EXTEND` precompile.
+    /// according to should_send function, the third byte should be 0x01
+    SQR_EXTEND = 0x00_11_01_33,
 }
 
 impl SyscallCode {
@@ -186,6 +190,7 @@ impl SyscallCode {
             0x00_01_01_2C => SyscallCode::SECP256R1_ADD,
             0x00_00_01_2D => SyscallCode::SECP256R1_DOUBLE,
             0x00_00_01_2E => SyscallCode::SECP256R1_DECOMPRESS,
+            0x00_11_01_33 => SyscallCode::SQR_EXTEND,
             _ => panic!("invalid syscall number: {value}"),
         }
     }
