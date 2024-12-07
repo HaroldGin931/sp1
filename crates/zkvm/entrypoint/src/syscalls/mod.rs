@@ -160,5 +160,5 @@ pub const BN254_FP2_SUB: u32 = 0x00_01_01_2A;
 /// Executes the `BN254_FP2_MUL` precompile.
 pub const BN254_FP2_MUL: u32 = 0x00_01_01_2B;
 
-/// Executes the `SQR_EXTEND` precompile.
-pub const SQR_EXTEND: u32 = 0x00_11_01_33;
+/// Executes the `ESQR` precompile.
+pub const ESQR: u32 = 0x00_11_01_33;

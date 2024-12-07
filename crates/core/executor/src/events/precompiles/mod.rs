@@ -1,5 +1,6 @@
 mod ec;
 mod edwards;
+mod esqr;
 mod fptower;
 mod keccak256_permute;
 mod sha256_compress;
@@ -10,6 +11,7 @@ mod uint256;
 use crate::syscalls::SyscallCode;
 pub use ec::*;
 pub use edwards::*;
+pub use esqr::*;
 pub use fptower::*;
 use hashbrown::HashMap;
 pub use keccak256_permute::*;
@@ -25,6 +27,8 @@ use super::{MemoryLocalEvent, SyscallEvent};
 #[derive(Clone, Debug, Serialize, Deserialize, EnumIter)]
 /// Precompile event.  There should be one variant for every precompile syscall.
 pub enum PrecompileEvent {
+    /// Square precompile event.
+    Esqr(EsqrEvent),
     /// Sha256 extend precompile event.
     ShaExtend(ShaExtendEvent),
     /// Sha256 compress precompile event.
@@ -89,6 +93,10 @@ impl PrecompileLocalMemory for Vec<(SyscallEvent, PrecompileEvent)> {
 
         for (_, event) in self.iter() {
             match event {
+                // TODO: Figure out what is the local_mem_access in the original code.
+                PrecompileEvent::Esqr(e) => {
+                    iterators.push(e.local_mem_access.iter());
+                }
                 PrecompileEvent::ShaExtend(e) => {
                     iterators.push(e.local_mem_access.iter());
                 }

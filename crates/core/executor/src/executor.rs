@@ -1696,8 +1696,8 @@ mod tests {
 
     use crate::programs::tests::{
         fibonacci_program, panic_program, secp256r1_add_program, secp256r1_double_program,
-        simple_esqr_program, simple_memory_program, simple_program, simple_sqr_program,
-        ssz_withdrawals_program, u256xu2048_mul_program,
+        simple_esqr_instructions, simple_esqr_program, simple_memory_program, simple_program,
+        simple_sqr_program, ssz_withdrawals_program, u256xu2048_mul_program,
     };
 
     use crate::Register;
@@ -1731,11 +1731,19 @@ mod tests {
     #[test]
     // cargo +succinct test -p sp1-core-executor executor::tests::test_simple_esqr_program_run --features programs
     fn test_simple_esqr_program_run() {
-        log::info!("Loading SQR_EXTEND program...");
+        log::info!("Loading ESQR program...");
         let program = simple_esqr_program();
         let mut runtime = Executor::new(program, SP1CoreOpts::default());
         runtime.run().unwrap();
-        // assert_eq!(runtime.register(Register::X29), 25);
+        // assert_eq!(runtime.register(Register::X5), 9801);
+    }
+
+    #[test]
+    fn test_simple_esqr_instructions_run() {
+        let program = simple_esqr_instructions();
+        let mut runtime = Executor::new(program, SP1CoreOpts::default());
+        runtime.run().unwrap();
+        assert_eq!(runtime.register(Register::X5), 25);
     }
 
     #[test]

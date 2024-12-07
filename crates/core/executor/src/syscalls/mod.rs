@@ -84,7 +84,7 @@ pub fn default_syscall_map() -> HashMap<SyscallCode, Arc<dyn Syscall>> {
 
     syscall_map.insert(SyscallCode::HALT, Arc::new(HaltSyscall));
 
-    syscall_map.insert(SyscallCode::SQR_EXTEND, Arc::new(EsqrSyscall));
+    syscall_map.insert(SyscallCode::ESQR, Arc::new(EsqrSyscall));
 
     syscall_map.insert(SyscallCode::SHA_EXTEND, Arc::new(Sha256ExtendSyscall));
 

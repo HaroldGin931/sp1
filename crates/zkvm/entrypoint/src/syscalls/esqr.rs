@@ -10,12 +10,12 @@ use core::arch::asm;
 /// boundary.
 #[allow(unused_variables)]
 #[no_mangle]
-pub extern "C" fn syscall_sqr_extend(w: *mut [u32; 1]) {
+pub extern "C" fn syscall_esqr(w: *mut [u32; 1]) {
     #[cfg(target_os = "zkvm")]
     unsafe {
         asm!(
             "ecall",
-            in("t0") crate::syscalls::SQR_EXTEND,
+            in("t0") crate::syscalls::ESQR,
             in("a0") w,
             in("a1") 0
         );

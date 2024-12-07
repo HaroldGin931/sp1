@@ -34,6 +34,23 @@ pub mod tests {
         Program::from(ESQR_ELF).unwrap()
     }
 
+    #[must_use]
+    pub fn simple_esqr_instructions() -> Program {
+        let instructions = vec![
+            // Perpare data
+            Instruction::new(Opcode::ADD, 29, 0, 5, false, true),
+            Instruction::new(Opcode::ADD, 30, 0, 0, false, true),
+            Instruction::new(Opcode::SW, 29, 0, 0x27654320, false, true),
+            Instruction::new(Opcode::SW, 30, 0, 0x27654324, false, true),
+            // Feed Ecall register
+            Instruction::new(Opcode::ADD, 5, 0, 0x00_11_01_33, false, true),
+            Instruction::new(Opcode::ADD, 10, 0, 0x27654320, false, true),
+            Instruction::new(Opcode::ADD, 11, 0, 0x27654324, false, true),
+            Instruction::new(Opcode::ECALL, 5, 0x27654320, 0x27654324, false, false),
+        ];
+        Program::new(instructions, 0, 0)
+    }
+
     /// Get the fibonacci program.
     ///
     /// # Panics
